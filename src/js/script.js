@@ -1,17 +1,19 @@
 /* global utils, dataSource */ // eslint-disable-line no-unused-vars
 {
   ("use strict");
+  const favouriteBooks = [];
+  const filters = [];
+  const booksList = document.querySelector(".books-list");
+
   const bookTemplate = Handlebars.compile(
     document.querySelector("#template-book").innerHTML
   );
-  const favouriteBooks = [];
-  const filters = [];
 
   const render = () => {
     dataSource.books.forEach((book) => {
       const { name, price, rating, image, id } = book;
 
-      document.querySelector(".books-list").innerHTML += bookTemplate({
+      booksList.innerHTML += bookTemplate({
         name,
         price,
         rating,
@@ -33,17 +35,40 @@
   };
 
   const filterBooks = () => {
-    const filterFormElem = document.querySelector(".filters");
+    dataSource.books.forEach((book) => {
+      const { details, id } = book;
+      const currentHTMLElem = document.querySelector(`[data-id="${id}"]`);
+
+      currentHTMLElem.classList.remove("hidden");
+      filters.forEach((filtr) => {
+        if (details[filtr]) {
+          currentHTMLElem.classList.add("hidden");
+        }
+      });
+    });
+  };
+
+  const filterBooksCallback = (clickedCheckbox) => {
+    const checkboxValue = clickedCheckbox.getAttribute("value");
+    if (clickedCheckbox.checked) {
+      filters.push(checkboxValue);
+    } else {
+      filters.splice(filters.indexOf(checkboxValue), 1);
+    }
+    filterBooks();
   };
 
   const initActions = () => {
-    document.querySelector(".books-list").addEventListener("dblclick", (e) => {
+    booksList.addEventListener("dblclick", (e) => {
       e.preventDefault();
       if (!e.target.closest("a").classList.contains("book__image")) return;
       toggleFavouriteBooks(e.target.closest("a"));
     });
 
-    filterBooks();
+    document.querySelector(".filters").addEventListener("click", (e) => {
+      if (!(e.target.getAttribute("type") === "checkbox")) return;
+      filterBooksCallback(e.target);
+    });
   };
 
   render();
